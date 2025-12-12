@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    color-scheme: dark;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #020617 0%, #0f172a 50%, #1e1b4b 100%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.5);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.7);
+}
+
+/* Glassmorphism utilities */
+@layer components {
+    .glass-card {
+        @apply bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl;
+    }
+
+    .glass-card-hover {
+        @apply glass-card transition-all duration-300 hover:border-indigo-500/50 hover:shadow-indigo-500/10;
+    }
+
+    .glow-text {
+        text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+    }
+
+    .data-value {
+        @apply font-mono text-2xl font-semibold tracking-tight;
+    }
+
+    .data-label {
+        @apply text-xs uppercase tracking-widest text-slate-400 font-medium;
+    }
+
+    .grid-line {
+        stroke: rgba(99, 102, 241, 0.1);
+        stroke-width: 1;
+    }
+
+    .anchor-point {
+        fill: #22c55e;
+        filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.6));
+    }
+
+    .person-dot {
+        fill: #f97316;
+        filter: drop-shadow(0 0 12px rgba(249, 115, 22, 0.8));
+    }
+
+    .triangulation-line {
+        stroke: rgba(249, 115, 22, 0.4);
+        stroke-width: 2;
+        stroke-dasharray: 8 4;
+    }
+}
+
+/* Animations */
+@keyframes pulse-ring {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.pulse-ring {
+    animation: pulse-ring 1.5s ease-out infinite;
+}
+
+/* Chart tooltip styling */
+.recharts-tooltip-wrapper {
+    outline: none !important;
+}
+
+.custom-tooltip {
+    @apply glass-card px-4 py-3 text-sm;
+}
