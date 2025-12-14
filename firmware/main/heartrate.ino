@@ -26,7 +26,7 @@ void setup_hr()
   particleSensor.setPulseAmplitudeGreen(0); 
 }
 
-void loop_hr()
+float loop_hr()
 {
   long irValue = particleSensor.getIR();
 
@@ -49,11 +49,15 @@ void loop_hr()
     }
   }
 
+  //Serial.print(", BPM=");
+  //Serial.print(bpm);
+  //Serial.print(", Avg BPM=");
+  //Serial.print(beatAvg);
 
-  if (irValue < 50000) {
-    bpm = 0;
-  }
-
+  if (irValue < 50000)
+    Serial.print(" [finger not detected]");
+  else 
+    Serial.print(" [finger OK]");
  
-  Serial.println(bpm);
+  return bpm;
 }
