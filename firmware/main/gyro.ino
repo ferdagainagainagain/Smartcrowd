@@ -10,7 +10,8 @@ Adafruit_MPU6050 mpu;
 
 float accelerarion = 0;
 
-void setup(void) {
+
+void setupMPU(void) {
   Serial.begin(115200);
   while (!Serial)
     delay(10); 
