@@ -49,7 +49,7 @@ float acceleration() {
   */
 
   // 1. Acceleration
-  Serial.print("AccelX:");
+  /*Serial.print("AccelX:");
   Serial.print(a.acceleration.x);
   Serial.print("\t");
   
@@ -62,6 +62,7 @@ float acceleration() {
   Serial.print("\t");
 
 
+  */
   accelerarion = abs(abs(a.acceleration.x) + abs(a.acceleration.y) + abs(a.acceleration.z) - 10.0);
   
   //Serial.print("Acce:");

@@ -18,6 +18,8 @@ void setup() {
   Serial.begin(9600);
 
   setupMPU();
+
+  setup_hr();
 }
 
 
@@ -50,9 +52,13 @@ void loop() {
     digitalWrite(buttonLed, HIGH);
 
     accelerario = acceleration();
+    heartrate = loop_hr();
 
   Serial.print("Acce:");
   Serial.print(accelerario);
+  Serial.print("\t");
+  Serial.print("HR:");
+  Serial.print(heartrate);
   Serial.print("\t");
   delay(50);
 
