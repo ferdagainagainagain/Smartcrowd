@@ -12,6 +12,11 @@ const int buttonLed = 13;
 float heartrate = 999;
 float accelerario = 0;
 
+// External RSSI variables from RSSI.ino
+extern float globalRSSI1;
+extern float globalRSSI2;
+extern float globalRSSI3;
+
 // --- NEW VARIABLES FOR TIMING ---
 unsigned long lastRSSITime = 0;
 // Set this to how often you want RSSI updates (e.g., 2000ms = 2 seconds)
@@ -60,7 +65,7 @@ void loop() {
   heartrate = loop_hr();
   accelerario = acceleration();
    
-  // 4. PRINT
+  // 4. PRINT (includes last known RSSI values)
   
   Serial.print("Acce:");
   Serial.print(accelerario);
@@ -68,5 +73,13 @@ void loop() {
   Serial.print("HR:");
   Serial.print(heartrate);
   Serial.print("\t");
+  Serial.print("RSSI1:");
+  Serial.print(globalRSSI1, 2);
+  Serial.print("\t");
+  Serial.print("RSSI2:");
+  Serial.print(globalRSSI2, 2);
+  Serial.print("\t");
+  Serial.print("RSSI3:");
+  Serial.print(globalRSSI3, 2);
   Serial.println();
 }

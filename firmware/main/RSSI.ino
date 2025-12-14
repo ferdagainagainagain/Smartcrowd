@@ -4,7 +4,6 @@
 // Configuration
 // =============================================================
 const int WINDOW_SIZE = 7;
-const unsigned long OUTPUT_INTERVAL_MS = 3000;
 
 // Target Access Points
 const char* AP_NAMES[3] = {
@@ -14,28 +13,11 @@ const char* AP_NAMES[3] = {
 };
 
 // =============================================================
-// Optimized path-loss parameters (FROM PYTHON)
-// RSSI = -10 * n * log10(d) + A
-// d = 10^((A - RSSI) / (10 * n))
+// Global RSSI values (accessible from main.ino)
 // =============================================================
-const float A_PARAMS[3] = {
-  -39.87,   // AP1
-  -40.21,   // AP2
-  -40.00    // AP3
-};
-
-const float N_PARAMS[3] = {
-  2.10,     // AP1
-  2.09,     // AP2
-  2.13      // AP3
-};
-
-// ==================
-
-// ==================
-
-
-
+float globalRSSI1 = NAN;
+float globalRSSI2 = NAN;
+float globalRSSI3 = NAN;
 
 // =============================================================
 // Moving average buffers (one per AP)
@@ -43,9 +25,6 @@ const float N_PARAMS[3] = {
 float rssiWindow[3][WINDOW_SIZE];
 int windowIndex[3] = {0, 0, 0};
 int sampleCount[3] = {0, 0, 0};
-
-// Timing
-unsigned long lastOutputTime = 0;
 
 // =============================================================
 // Utility functions
@@ -61,21 +40,11 @@ float getAverageRSSI(int apIndex) {
   return sum / count;
 }
 
-float estimateDistance(float avgRSSI, int apIndex) {
-  float A = A_PARAMS[apIndex];
-  float n = N_PARAMS[apIndex];
-  return pow(10.0, (A - avgRSSI) / (10.0 * n));
-}
-
 // =============================================================
 // Setup
 // =============================================================
 void setup_RSSI() {
-  Serial.begin(9600);
-  while (!Serial);
-
-  Serial.println("ScanNetworks – 3 AP Distance Estimation");
-  Serial.println("Format: AP,RSSI_AVG,DISTANCE_M");
+  // WiFi scanning initialization (Serial already started in main.ino)
 }
 
 // =============================================================
@@ -98,25 +67,22 @@ void getRSSI() {
     }
   }
 
-  // Output every 3 seconds
-  unsigned long now = millis();
-  if (now - lastOutputTime >= OUTPUT_INTERVAL_MS) {
-    lastOutputTime = now;
-
-    for (int ap = 0; ap < 3; ap++) {
-      float avgRSSI = getAverageRSSI(ap);
-      if (!isnan(avgRSSI)) {
-        float distance = estimateDistance(avgRSSI, ap);
-
-        Serial.print(AP_NAMES[ap]);
-        Serial.print(",");
-        Serial.print(avgRSSI, 1);
-        Serial.print(",");
-        Serial.println(distance, 2);
-      }
-    }
-
-    Serial.println("---");
+  // Update global RSSI values for each AP
+  float avgRSSI;
+  
+  avgRSSI = getAverageRSSI(0);
+  if (!isnan(avgRSSI)) {
+    globalRSSI1 = avgRSSI;
+  }
+  
+  avgRSSI = getAverageRSSI(1);
+  if (!isnan(avgRSSI)) {
+    globalRSSI2 = avgRSSI;
+  }
+  
+  avgRSSI = getAverageRSSI(2);
+  if (!isnan(avgRSSI)) {
+    globalRSSI3 = avgRSSI;
   }
 }
 
