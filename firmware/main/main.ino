@@ -78,7 +78,9 @@ void loop() {
   hr = heartRate();
   temp = temperature();
   getAcceleration();
-  getRSSI(); 
+
+  
+
 
 
 
@@ -130,14 +132,10 @@ void loop() {
     
     digitalWrite(buttonLed, HIGH);
 
-    // --- THE FIX: NON-BLOCKING TIMER ---
-    // Instead of running getRSSI() every loop, we check if 2 seconds have passed.
-    // if (millis() - lastRSSITime > RSSI_INTERVAL) {
-    //   lastRSSITime = millis(); // Reset timer
-    //   getRSSI();   
-      
-    //            // This will still freeze for 4s, but only ONCE every 2 seconds
-    // }
+    if (millis() - lastRSSITime > RSSI_INTERVAL) {
+      lastRSSITime = millis(); // Reset timer
+      getRSSI();   
+    }
     
   } 
 
