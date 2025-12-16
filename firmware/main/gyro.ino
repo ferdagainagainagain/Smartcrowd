@@ -11,9 +11,7 @@ Adafruit_MPU6050 mpu;
 
 
 void setup_gyro(void) {
-  Serial.begin(115200);
-  while (!Serial)
-    delay(10); 
+  
 
   // Initializing
   if (!mpu.begin()) {

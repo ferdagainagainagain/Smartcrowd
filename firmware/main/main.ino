@@ -50,7 +50,7 @@ void setup() {
   setup_heartRate();
   setup_button();
   setup_temp();
-
+  setup_bluetooth();
 }
 
 
@@ -143,32 +143,49 @@ void loop() {
 
 
 
-  Serial.print("[");
-  Serial.print(systemOn);
-  Serial.print("; ");
-  Serial.print(acc);
-  Serial.print("; ");
-  Serial.print(accX);
-  Serial.print("; ");
-  Serial.print(accY);
-  Serial.print("; ");
-  Serial.print(accZ);
-  Serial.print("; ");
-  Serial.print(hr);
-  Serial.print("; ");
-  Serial.print(temp);
-  Serial.print("; ");
-  Serial.print(globalRSSI1);
-  Serial.print("; ");
-  Serial.print(globalRSSI2);
-  Serial.print("; ");
-  Serial.print(globalRSSI3);
-  Serial.print("]");
-  Serial.println();
+  
 
+  // Serial.print("[");
+  // Serial.print(systemOn);
+  // Serial.print("; ");
+  // Serial.print(acc);
+  // Serial.print("; ");
+  // Serial.print(accX);
+  // Serial.print("; ");
+  // Serial.print(accY);
+  // Serial.print("; ");
+  // Serial.print(accZ);
+  // Serial.print("; ");
+  // Serial.print(hr);
+  // Serial.print("; ");
+  // Serial.print(temp);
+  // Serial.print("; ");
+  // Serial.print(globalRSSI1);
+  // Serial.print("; ");
+  // Serial.print(globalRSSI2);
+  // Serial.print("; ");
+  // Serial.print(globalRSSI3);
+  // Serial.print("]");
+  // Serial.println();
+
+  char buffer[128]; // Make sure the buffer is large enough for all your data
+
+  // Format the data into the buffer 
+  snprintf(buffer, sizeof(buffer), 
+           "[%d; %.2f; %.2f; %.2f; %.2f; %.1f; %.1f; %.1f; %.1f; %.1f]",
+           systemOn, acc, accX, accY, accZ, hr, temp, globalRSSI1, globalRSSI2, globalRSSI3
+          );
+  
+  send_data_bluetooth(buffer); 
+  
+  // Optionally, still print to the serial monitor for debugging
+  Serial.println(buffer); 
 
   
   
+   
+  // 6. BLE Polling
+  loop_bluetooth(); // <-- IMPORTANT: Keeps the BLE communication active
 
    
   // 5. PRINT (includes last known RSSI values)
