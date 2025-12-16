@@ -26,6 +26,9 @@ float rssiWindow[3][WINDOW_SIZE];
 int windowIndex[3] = {0, 0, 0};
 int sampleCount[3] = {0, 0, 0};
 
+
+
+
 // =============================================================
 // Utility functions
 // =============================================================
@@ -40,16 +43,19 @@ float getAverageRSSI(int apIndex) {
   return sum / count;
 }
 
-// =============================================================
-// Setup
-// =============================================================
+
+
+
+
+
 void setup_RSSI() {
   // WiFi scanning initialization (Serial already started in main.ino)
 }
 
-// =============================================================
-// Loop
-// =============================================================
+
+
+
+
 void getRSSI() {
   int numSsid = WiFi.scanNetworks();
 

@@ -11,7 +11,7 @@ Adafruit_MPU6050 mpu;
 float accelerarion = 0;
 
 
-void setupMPU(void) {
+void setup_gyro(void) {
   Serial.begin(115200);
   while (!Serial)
     delay(10); 
@@ -83,7 +83,7 @@ float acceleration() {
   //Serial.print(g.gyro.z);
 
   // 3. End the line (essential for the plotter to step forward)
-  Serial.println();
+  //Serial.println();
 
  
 
