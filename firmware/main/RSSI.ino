@@ -25,7 +25,7 @@ float globalRSSI3 = NAN;
 float rssiWindow[3][WINDOW_SIZE];
 int windowIndex[3] = {0, 0, 0};
 int sampleCount[3] = {0, 0, 0};
-
+int rssiValue[3]= {0,0,0};
 
 
 
@@ -66,6 +66,46 @@ void getRSSI() {
 
     for (int ap = 0; ap < 3; ap++) {
       if (ssid == AP_NAMES[ap]) {
+        rssiValue[ap] = rssi;
+
+      }
+    }
+  }
+
+  // Update global RSSI values for each AP
+  
+  
+
+  if (!isnan(rssiValue[0])) {
+    globalRSSI1 = rssiValue[0];
+  }
+  
+
+  if (!isnan(rssiValue[1])) {
+    globalRSSI2 = rssiValue[1];
+  }
+  
+
+  if (!isnan(rssiValue[2])) {
+    globalRSSI3 = rssiValue[2];
+  }
+}
+
+
+
+
+
+
+void getRSSI_window() {
+  int numSsid = WiFi.scanNetworks();
+
+  // Update RSSI windows
+  for (int i = 0; i < numSsid; i++) {
+    String ssid = WiFi.SSID(i);
+    long rssi = WiFi.RSSI(i);
+
+    for (int ap = 0; ap < 3; ap++) {
+      if (ssid == AP_NAMES[ap]) {
         rssiWindow[ap][windowIndex[ap]] = rssi;
         windowIndex[ap] = (windowIndex[ap] + 1) % WINDOW_SIZE;
         sampleCount[ap]++;
@@ -91,6 +131,12 @@ void getRSSI() {
     globalRSSI3 = avgRSSI;
   }
 }
+
+
+
+
+
+
 
 
 

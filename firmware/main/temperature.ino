@@ -26,11 +26,6 @@ void setup_temp()
     Serial.println("Could not find BME280 sensor!");
     delay(1000);
   }
-
-  if (bme.chipModel() == BME280::ChipModel_BME280)
-    Serial.println("Found BME280 sensor!");
-  else
-    Serial.println("Found sensor, but not BME280!");
 }
 
 

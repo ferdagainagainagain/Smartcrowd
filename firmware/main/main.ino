@@ -6,13 +6,21 @@ const int button = 2;
 
 //Sensors variables
 float hr = 60;
-float acc = 0;
 float temp = 36; 
+
+
+// External acceleration variables from gyro.ino
+extern float acc = 0;
+extern float accX = 0;
+extern float accY = 0;
+extern float accZ = 0;
+
 
 // External RSSI variables from RSSI.ino
 extern float globalRSSI1;
 extern float globalRSSI2;
 extern float globalRSSI3;
+
 
 // RSSI time interval
 unsigned long lastRSSITime = 0;
@@ -68,96 +76,101 @@ void loop() {
   // 2. READ OTHER SENSORS (These run fast)
 
   hr = heartRate();
-  acc = acceleration();
   temp = temperature();
+  getAcceleration();
+  getRSSI(); 
 
 
 
 
+  // 3. EMERGENCY DETECTION
 
-// 3. EMERGENCY DETECTION
+  if (acc > ACC_EMERGENCY && !systemOn) {
 
-if (acc > ACC_EMERGENCY && !systemOn) {
-
-  emergencyActive = true;
-  unsigned long emergencyStart = millis();
-  bool emergencyCancelled = false;
+    emergencyActive = true;
+    unsigned long emergencyStart = millis();
+    bool emergencyCancelled = false;
 
 
-  // 15 seconds window to cancel the request
-  while (millis() - emergencyStart < 15000) {
+    // 15 seconds window to cancel the request
+    while (millis() - emergencyStart < 15000) {
 
-    // pulsing led 
-    digitalWrite(buttonLed, (millis() / 300) % 2);
+      // pulsing led 
+      digitalWrite(buttonLed, (millis() / 300) % 2);
 
-    // longPress -> cancel the emergency
-    if (longPressDetected()) {
-      emergencyCancelled = true;
-      break;
+      // longPress -> cancel the emergency
+      if (longPressDetected()) {
+        emergencyCancelled = true;
+        break;
+      }
     }
+
+
+    // emergency not cacelled -> system on
+    if (!emergencyCancelled) {
+      systemOn = true;
+    }
+    else { 
+      digitalWrite(buttonLed, LOW);
+      delay(1000);
+    }
+
+
   }
 
 
-  // emergency not cacelled -> system on
-  if (!emergencyCancelled) {
-    systemOn = true;
-  }
-  else { 
-  digitalWrite(buttonLed, LOW);
-  delay(1000);
-  }
-
-
-}
 
 
 
 
-
-
-
+ 
 
   // 4. STATE MANAGEMENT
   if (systemOn) {
-    // --- LED ON MODE ---
+    
     digitalWrite(buttonLed, HIGH);
 
     // --- THE FIX: NON-BLOCKING TIMER ---
     // Instead of running getRSSI() every loop, we check if 2 seconds have passed.
-    if (millis() - lastRSSITime > RSSI_INTERVAL) {
-      lastRSSITime = millis(); // Reset timer
-      getRSSI();   
-      Serial.print("RSSI1:");
-      Serial.print(globalRSSI1, 2);
-      Serial.print("\t");
-      Serial.print("RSSI2:");
-      Serial.print(globalRSSI2, 2);
-      Serial.print("\t");
-      Serial.print("RSSI3:");
-      Serial.print(globalRSSI3, 2); 
-      Serial.println();
-               // This will still freeze for 4s, but only ONCE every 2 seconds
-    }
+    // if (millis() - lastRSSITime > RSSI_INTERVAL) {
+    //   lastRSSITime = millis(); // Reset timer
+    //   getRSSI();   
+      
+    //            // This will still freeze for 4s, but only ONCE every 2 seconds
+    // }
     
-  } else {
-    // --- LED OFF MODE ---
-    digitalWrite(buttonLed, LOW);
-    Serial.print("Acce:");
-    Serial.print(acc);
-    Serial.print("\t");
-
-    Serial.print("HR:");
-    Serial.print(hr);
-    Serial.print("\t");
-
-    Serial.print("temp:");
-    Serial.print(temp);
-    Serial.print("\t");
-    Serial.println();
-  }
+  } 
 
 
 
+
+
+  Serial.print("[");
+  Serial.print(systemOn);
+  Serial.print("; ");
+  Serial.print(acc);
+  Serial.print("; ");
+  Serial.print(accX);
+  Serial.print("; ");
+  Serial.print(accY);
+  Serial.print("; ");
+  Serial.print(accZ);
+  Serial.print("; ");
+  Serial.print(hr);
+  Serial.print("; ");
+  Serial.print(temp);
+  Serial.print("; ");
+  Serial.print(globalRSSI1);
+  Serial.print("; ");
+  Serial.print(globalRSSI2);
+  Serial.print("; ");
+  Serial.print(globalRSSI3);
+  Serial.print("]");
+  Serial.println();
+
+
+  
+  
 
    
   // 5. PRINT (includes last known RSSI values)

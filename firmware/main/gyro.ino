@@ -8,7 +8,6 @@
 
 Adafruit_MPU6050 mpu;
 
-float accelerarion = 0;
 
 
 void setup_gyro(void) {
@@ -36,7 +35,7 @@ void setup_gyro(void) {
 
 
 
-float acceleration() {
+void getAcceleration() {
   /* Get new sensor events with the readings */
   sensors_event_t a, g, temp;
   
@@ -63,7 +62,10 @@ float acceleration() {
 
 
   */
-  accelerarion = abs(abs(a.acceleration.x) + abs(a.acceleration.y) + abs(a.acceleration.z) - 10.0);
+  acc = abs(abs(a.acceleration.x) + abs(a.acceleration.y) + abs(a.acceleration.z) - 10.0);
+  accX = abs(a.acceleration.x);
+  accY = abs(a.acceleration.y);
+  accZ = abs(a.acceleration.z);
   
   //Serial.print("Acce:");
   //Serial.print(accelerarion);
@@ -86,6 +88,4 @@ float acceleration() {
   //Serial.println();
 
  
-
-return accelerarion;
 }
