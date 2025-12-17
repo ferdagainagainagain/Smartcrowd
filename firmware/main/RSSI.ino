@@ -3,7 +3,7 @@
 // =============================================================
 // Configuration
 // =============================================================
-const int WINDOW_SIZE = 7;
+const int WINDOW_SIZE = 10;
 
 // Target Access Points
 const char* AP_NAMES[3] = {

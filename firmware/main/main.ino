@@ -22,10 +22,12 @@ extern float globalRSSI2;
 extern float globalRSSI3;
 
 
+
+
 // RSSI time interval
 unsigned long lastRSSITime = 0;
 // Set this to how often you want RSSI updates (e.g., 2000ms = 2 seconds)
-const unsigned long RSSI_INTERVAL = 2000; 
+const unsigned long RSSI_INTERVAL = 1000; 
 
 // Emergency thresholds
 const float HR_EMERGENCY = 120.0;      
@@ -37,6 +39,8 @@ bool emergencyActive = false;
 
 
 bool systemOn = false;
+bool fall = false;
+
 
 
 
@@ -67,6 +71,7 @@ void loop() {
 
   if (systemOn && longPressDetected()) {     //power off
     systemOn = false;
+    fall = false;
     digitalWrite(buttonLed, LOW);
     delay (1000);
   }
@@ -90,12 +95,14 @@ void loop() {
   if (acc > ACC_EMERGENCY && !systemOn) {
 
     emergencyActive = true;
+    fall = true;
     unsigned long emergencyStart = millis();
     bool emergencyCancelled = false;
+    
 
 
-    // 15 seconds window to cancel the request
-    while (millis() - emergencyStart < 15000) {
+    // 5 seconds window to cancel the request
+    while (millis() - emergencyStart < 5000) {
 
       // pulsing led 
       digitalWrite(buttonLed, (millis() / 300) % 2);
@@ -103,6 +110,7 @@ void loop() {
       // longPress -> cancel the emergency
       if (longPressDetected()) {
         emergencyCancelled = true;
+        fall = false;
         break;
       }
     }
@@ -134,7 +142,7 @@ void loop() {
 
     if (millis() - lastRSSITime > RSSI_INTERVAL) {
       lastRSSITime = millis(); // Reset timer
-      getRSSI();   
+      getRSSI_window();   
     }
     
   } 
@@ -172,8 +180,8 @@ void loop() {
 
   // Format the data into the buffer 
   snprintf(buffer, sizeof(buffer), 
-           "[%d; %.2f; %.2f; %.2f; %.2f; %.1f; %.1f; %.1f; %.1f; %.1f]",
-           systemOn, acc, accX, accY, accZ, hr, temp, globalRSSI1, globalRSSI2, globalRSSI3
+           "[%d; %d; %.2f; %.2f; %.2f; %.2f; %.1f; %.1f; %.1f; %.1f; %.1f]",
+           fall,systemOn, acc, accX, accY, accZ, hr, temp, globalRSSI1, globalRSSI2, globalRSSI3
           );
   
   send_data_bluetooth(buffer); 
@@ -181,7 +189,7 @@ void loop() {
   // Optionally, still print to the serial monitor for debugging
   Serial.println(buffer); 
 
-  
+
   
    
   // 6. BLE Polling
