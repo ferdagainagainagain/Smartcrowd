@@ -1,184 +1,128 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 /**
- * Custom hook that generates simulated sensor data for IoT dashboard
- * Uses random walk for position, sine wave + noise for heartbeat, 
- * and slow Brownian motion for humidity
+ * Custom hook for sensor data with mock data generation
+ * Generates realistic sensor readings with configurable spike probabilities
  */
-export function useSensorData() {
-    const [position, setPosition] = useState({ x: 5, y: 5 }); // Start in center
+export function useSensorData(spikeProb = 0.10) {
+    // Current values
     const [heartbeat, setHeartbeat] = useState(75);
-    const [humidity, setHumidity] = useState(45);
-    const [temperature, setTemperature] = useState(36.8);
+    const [temperature, setTemperature] = useState(37.0);
+    const [acceleration, setAcceleration] = useState(9.8);
+    const [position, setPosition] = useState({ x: 5, y: 5 });
+    const [room] = useState("DANCE_ROOM");
+
+    // History arrays for charts (60 data points)
     const [heartbeatHistory, setHeartbeatHistory] = useState([]);
-    const [humidityHistory, setHumidityHistory] = useState([]);
     const [temperatureHistory, setTemperatureHistory] = useState([]);
+    const [accelerationHistory, setAccelerationHistory] = useState([]);
 
-    const timeRef = useRef(0);
-    const humidityTrendRef = useRef(0); // Slow drift direction
+    // Time counter for sine wave generation
+    const [time, setTime] = useState(0);
 
-    // Random walk for position - smooth movement
-    const updatePosition = useCallback((prevPos) => {
-        // Random step with momentum (smoother movement)
-        const stepSize = 0.3; // Maximum step per second
-        const dx = (Math.random() - 0.5) * 2 * stepSize;
-        const dy = (Math.random() - 0.5) * 2 * stepSize;
+    const HISTORY_SIZE = 60;
 
-        // Apply step with boundary constraints (0-10m room)
-        let newX = prevPos.x + dx;
-        let newY = prevPos.y + dy;
+    // Generate new sensor data
+    const updateData = useCallback(() => {
+        const t = time / 10;
 
-        // Soft boundary - bounce back when near edges
-        const margin = 0.5;
-        if (newX < margin) newX = margin + Math.random() * 0.2;
-        if (newX > 10 - margin) newX = 10 - margin - Math.random() * 0.2;
-        if (newY < margin) newY = margin + Math.random() * 0.2;
-        if (newY > 10 - margin) newY = 10 - margin - Math.random() * 0.2;
-
-        return { x: newX, y: newY };
-    }, []);
-
-    // Heartbeat: base + sine oscillation + noise (60-100 BPM range)
-    const calculateHeartbeat = useCallback((time) => {
-        const baseBPM = 80;
-        const amplitude = 15;
-        const frequency = 0.1; // Slow oscillation
-
-        // Sine wave for natural rhythm
-        const sineComponent = amplitude * Math.sin(time * frequency);
-
-        // Random noise
-        const noise = (Math.random() - 0.5) * 8;
-
-        // Combine and clamp
-        let bpm = baseBPM + sineComponent + noise;
-        bpm = Math.max(60, Math.min(100, bpm));
-
-        return Math.round(bpm);
-    }, []);
-
-    // Temperature: base + sine oscillation + noise (36.5-37.5°C range)
-    const calculateTemperature = useCallback((time, prevTemp) => {
-        const baseTemp = 37.0;
-        const amplitude = 0.3;
-        const frequency = 0.05; // Very slow oscillation
-
-        // Sine wave for natural circadian rhythm
-        const sineComponent = amplitude * Math.sin(time * frequency);
-
-        // Small random noise
-        const noise = (Math.random() - 0.5) * 0.15;
-
-        // Slight tendency to return to baseline
-        const pull = (baseTemp - prevTemp) * 0.05;
-
-        // Combine and clamp
-        let temp = prevTemp + sineComponent * 0.02 + noise + pull;
-        temp = Math.max(36.2, Math.min(37.8, temp));
-
-        return parseFloat(temp.toFixed(1));
-    }, []);
-
-    // Humidity: slow Brownian motion around 45%
-    const calculateHumidity = useCallback((prevHumidity) => {
-        // Very small random change
-        const change = (Math.random() - 0.5) * 0.3;
-
-        // Slight tendency to return to baseline (45%)
-        const baseline = 45;
-        const pull = (baseline - prevHumidity) * 0.02;
-
-        let newHumidity = prevHumidity + change + pull;
-
-        // Clamp to realistic range
-        newHumidity = Math.max(40, Math.min(50, newHumidity));
-
-        return parseFloat(newHumidity.toFixed(1));
-    }, []);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            timeRef.current += 1;
-            const now = new Date();
-            const timestamp = now.toLocaleTimeString('en-US', {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-
-            // Update position with random walk
-            setPosition(prev => updatePosition(prev));
-
-            // Update heartbeat
-            const newHeartbeat = calculateHeartbeat(timeRef.current);
-            setHeartbeat(newHeartbeat);
-
-            // Update humidity
-            setHumidity(prev => {
-                const newHumidity = calculateHumidity(prev);
-                return newHumidity;
-            });
-
-            // Update temperature
-            setTemperature(prev => {
-                const newTemperature = calculateTemperature(timeRef.current, prev);
-                return newTemperature;
-            });
-
-            // Update histories (keep last 60 seconds)
-            setHeartbeatHistory(prev => {
-                const newHistory = [...prev, { time: timestamp, value: newHeartbeat, rawTime: timeRef.current }];
-                return newHistory.slice(-60);
-            });
-
-            setHumidityHistory(prev => {
-                setHumidity(currentHumidity => {
-                    const newHistory = [...prev, { time: timestamp, value: currentHumidity, rawTime: timeRef.current }];
-                    setHumidityHistory(newHistory.slice(-60));
-                    return currentHumidity;
-                });
-                return prev;
-            });
-
-            setTemperatureHistory(prev => {
-                setTemperature(currentTemp => {
-                    const newHistory = [...prev, { time: timestamp, value: currentTemp, rawTime: timeRef.current }];
-                    setTemperatureHistory(newHistory.slice(-60));
-                    return currentTemp;
-                });
-                return prev;
-            });
-
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [updatePosition, calculateHeartbeat, calculateHumidity, calculateTemperature]);
-
-    // Fix humidity history update
-    useEffect(() => {
-        if (humidityHistory.length === 0) return;
-
-        const lastEntry = humidityHistory[humidityHistory.length - 1];
-        if (lastEntry && lastEntry.value !== humidity) {
-            setHumidityHistory(prev => {
-                const updated = [...prev];
-                if (updated.length > 0) {
-                    updated[updated.length - 1] = { ...updated[updated.length - 1], value: humidity };
-                }
-                return updated;
-            });
+        // Heartbeat: 60-100 BPM with sine wave + noise
+        // Spike: > 120 or < 50
+        let newHR = 75 + 15 * Math.sin(t) + (Math.random() - 0.5) * 10;
+        if (Math.random() < spikeProb / 2) {
+            // High heartbeat spike
+            newHR = 125 + Math.random() * 15;
+        } else if (Math.random() < spikeProb / 2) {
+            // Low heartbeat spike
+            newHR = 40 + Math.random() * 8;
         }
-    }, [humidity]);
+        newHR = Math.max(40, Math.min(150, newHR));
+
+        // Temperature: ~37°C with occasional spikes
+        // Spike: > 38.5 or < 35.5
+        let newTemp = 37.0 + 0.3 * Math.sin(t * 0.5) + (Math.random() - 0.5) * 0.4;
+        if (Math.random() < spikeProb / 2) {
+            // High temp spike
+            newTemp = 38.8 + Math.random() * 0.5;
+        } else if (Math.random() < spikeProb / 2) {
+            // Low temp spike  
+            newTemp = 35.0 + Math.random() * 0.4;
+        }
+        newTemp = Math.max(34, Math.min(41, newTemp));
+
+        // Acceleration: ~9.8 with fall spikes > 25
+        let newAcc = 9.8 + (Math.random() - 0.5) * 2;
+        if (Math.random() < spikeProb) {
+            // Fall spike
+            newAcc = 26 + Math.random() * 5;
+        }
+        newAcc = Math.max(8, newAcc);
+
+        // Position: Random walk within 0-10 meters
+        const dx = (Math.random() - 0.5) * 0.5;
+        const dy = (Math.random() - 0.5) * 0.5;
+        const newX = Math.max(0, Math.min(10, position.x + dx));
+        const newY = Math.max(0, Math.min(10, position.y + dy));
+
+        // Update current values
+        setHeartbeat(Math.round(newHR));
+        setTemperature(parseFloat(newTemp.toFixed(1)));
+        setAcceleration(parseFloat(newAcc.toFixed(1)));
+        setPosition({ x: parseFloat(newX.toFixed(1)), y: parseFloat(newY.toFixed(1)) });
+        setTime(t => t + 1);
+
+        // Update history arrays with timestamp
+        const timestamp = Date.now();
+
+        setHeartbeatHistory(prev => {
+            const updated = [...prev, { time: timestamp, value: Math.round(newHR) }];
+            return updated.slice(-HISTORY_SIZE);
+        });
+
+        setTemperatureHistory(prev => {
+            const updated = [...prev, { time: timestamp, value: parseFloat(newTemp.toFixed(1)) }];
+            return updated.slice(-HISTORY_SIZE);
+        });
+
+        setAccelerationHistory(prev => {
+            const updated = [...prev, { time: timestamp, value: parseFloat(newAcc.toFixed(1)) }];
+            return updated.slice(-HISTORY_SIZE);
+        });
+
+    }, [time, position, spikeProb]);
+
+    // Update every 500ms
+    useEffect(() => {
+        const interval = setInterval(updateData, 500);
+        return () => clearInterval(interval);
+    }, [updateData]);
+
+    // Calculate distances to anchors (for triangulation display)
+    const anchors = {
+        A1: { x: 0, y: 0 },
+        A2: { x: 10, y: 0 },
+        A3: { x: 5, y: 10 }
+    };
+
+    const distances = {
+        A1: Math.sqrt(Math.pow(position.x - anchors.A1.x, 2) + Math.pow(position.y - anchors.A1.y, 2)),
+        A2: Math.sqrt(Math.pow(position.x - anchors.A2.x, 2) + Math.pow(position.y - anchors.A2.y, 2)),
+        A3: Math.sqrt(Math.pow(position.x - anchors.A3.x, 2) + Math.pow(position.y - anchors.A3.y, 2))
+    };
 
     return {
-        position,
+        // Current values
         heartbeat,
-        humidity,
         temperature,
+        acceleration,
+        position,
+        room,
+        distances,
+
+        // History for charts
         heartbeatHistory,
-        humidityHistory,
         temperatureHistory,
+        accelerationHistory
     };
 }
 

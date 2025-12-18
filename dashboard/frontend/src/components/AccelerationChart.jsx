@@ -1,11 +1,13 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 /**
- * HeartbeatChart - Terminal-style heart rate chart
+ * AccelerationChart - Terminal-style motion/acceleration chart
  * Step-type lines with Bloomberg Terminal aesthetic
- * NO warning thresholds (sensor values are unreliable)
+ * Fall threshold is configurable (default 7.5)
  */
-function HeartbeatChart({ data, currentValue }) {
+function AccelerationChart({ data, currentValue, fallThreshold = 7.5 }) {
+    const isWarning = currentValue > fallThreshold;
+
     return (
         <div>
             <div style={{
@@ -15,19 +17,19 @@ function HeartbeatChart({ data, currentValue }) {
                 marginBottom: '4px'
             }}>
                 <span style={{
-                    color: '#FFB000',
+                    color: isWarning ? '#FF3333' : '#FFB000',
                     fontSize: '24px',
                     fontFamily: "'Courier New', Consolas, monospace",
                     fontWeight: 'bold'
                 }}>
-                    {currentValue} BPM
+                    {currentValue} m/s²
                 </span>
                 <span style={{
                     color: '#555555',
                     fontSize: '10px',
                     fontFamily: "'Courier New', Consolas, monospace"
                 }}>
-                    RAW_SENSOR_DATA
+                    FALL_THRESHOLD: {fallThreshold}
                 </span>
             </div>
 
@@ -43,11 +45,17 @@ function HeartbeatChart({ data, currentValue }) {
                         hide={true}
                     />
                     <YAxis
-                        domain={['auto', 'auto']}
+                        domain={[0, 15]}
                         tick={{ fill: '#00FF00', fontSize: 10, fontFamily: "'Courier New', monospace" }}
                         axisLine={{ stroke: '#333333' }}
                         tickLine={{ stroke: '#333333' }}
-                        width={35}
+                        width={30}
+                    />
+                    <ReferenceLine
+                        y={fallThreshold}
+                        stroke="#FF3333"
+                        strokeDasharray="3 3"
+                        label={{ value: 'FALL', fill: '#FF3333', fontSize: 8, position: 'right' }}
                     />
                     <Line
                         type="stepAfter"
@@ -63,4 +71,4 @@ function HeartbeatChart({ data, currentValue }) {
     );
 }
 
-export default HeartbeatChart;
+export default AccelerationChart;

@@ -1,101 +1,213 @@
-import React from 'react';
-import { MapPin, Activity, Thermometer, Clock, Wifi, Cpu, Droplets } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 /**
- * DataCard - Displays current raw sensor values
+ * DataCard - Terminal-style status footer
+ * Displays current sensor values and connection status
  */
-export function DataCard({ position, heartbeat, humidity, temperature }) {
-    const currentTime = new Date().toLocaleTimeString('en-US', {
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-    });
+function DataCard({ heartbeat, temperature, acceleration, position, room, systemOn, connected }) {
+    const [timestamp, setTimestamp] = useState(new Date());
+
+    // Update timestamp every second
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTimestamp(new Date());
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const formatTime = (date) => {
+        return date.toISOString().replace('T', ' ').substring(0, 19);
+    };
 
     return (
-        <div className="glass-card p-5">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-semibold text-white flex items-center gap-2">
-                    <Cpu className="w-4 h-4 text-indigo-400" />
-                    Live Sensor Data
-                </h3>
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                    <Wifi className="w-3 h-3 text-green-500 animate-pulse" />
-                    <span>Connected</span>
+        <div style={{
+            border: '1px solid #333333',
+            backgroundColor: '#000000',
+            padding: '8px 16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px'
+        }}>
+            {/* Sensor Values */}
+            <div style={{
+                display: 'flex',
+                gap: '24px'
+            }}>
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    <span style={{
+                        color: '#555555',
+                        fontSize: '10px',
+                        fontFamily: "'Courier New', Consolas, monospace",
+                        letterSpacing: '0.05em'
+                    }}>
+                        HEART_RATE
+                    </span>
+                    <span style={{
+                        color: '#FFB000',
+                        fontSize: '14px',
+                        fontFamily: "'Courier New', Consolas, monospace"
+                    }}>
+                        {heartbeat} BPM
+                    </span>
+                </div>
+
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    <span style={{
+                        color: '#555555',
+                        fontSize: '10px',
+                        fontFamily: "'Courier New', Consolas, monospace",
+                        letterSpacing: '0.05em'
+                    }}>
+                        BODY_TEMP
+                    </span>
+                    <span style={{
+                        color: '#FFB000',
+                        fontSize: '14px',
+                        fontFamily: "'Courier New', Consolas, monospace"
+                    }}>
+                        {temperature}°C
+                    </span>
+                </div>
+
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    <span style={{
+                        color: '#555555',
+                        fontSize: '10px',
+                        fontFamily: "'Courier New', Consolas, monospace",
+                        letterSpacing: '0.05em'
+                    }}>
+                        MOTION
+                    </span>
+                    <span style={{
+                        color: '#FFB000',
+                        fontSize: '14px',
+                        fontFamily: "'Courier New', Consolas, monospace"
+                    }}>
+                        {acceleration} m/s²
+                    </span>
+                </div>
+
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    <span style={{
+                        color: '#555555',
+                        fontSize: '10px',
+                        fontFamily: "'Courier New', Consolas, monospace",
+                        letterSpacing: '0.05em'
+                    }}>
+                        POSITION
+                    </span>
+                    <span style={{
+                        color: '#00FF00',
+                        fontSize: '14px',
+                        fontFamily: "'Courier New', Consolas, monospace"
+                    }}>
+                        ({position.x}, {position.y})
+                    </span>
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                {/* Position X */}
-                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 transition-all hover:border-indigo-500/50">
-                    <div className="flex items-center gap-2 mb-2">
-                        <MapPin className="w-4 h-4 text-orange-400" />
-                        <span className="data-label">Position X</span>
-                    </div>
-                    <div className="data-value text-orange-400">
-                        {position.x.toFixed(2)}
-                        <span className="text-sm text-slate-400 ml-1">m</span>
-                    </div>
+            {/* Status Info */}
+            <div style={{
+                display: 'flex',
+                gap: '24px',
+                alignItems: 'center'
+            }}>
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    <span style={{
+                        color: '#555555',
+                        fontSize: '10px',
+                        fontFamily: "'Courier New', Consolas, monospace",
+                        letterSpacing: '0.05em'
+                    }}>
+                        DEVICE_STATE
+                    </span>
+                    <span style={{
+                        color: systemOn ? '#00FF00' : '#FF3333',
+                        fontSize: '14px',
+                        fontFamily: "'Courier New', Consolas, monospace"
+                    }}>
+                        {systemOn ? 'SYSTEM_ON' : 'SYSTEM_OFF'}
+                    </span>
                 </div>
 
-                {/* Position Y */}
-                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 transition-all hover:border-indigo-500/50">
-                    <div className="flex items-center gap-2 mb-2">
-                        <MapPin className="w-4 h-4 text-orange-400" />
-                        <span className="data-label">Position Y</span>
-                    </div>
-                    <div className="data-value text-orange-400">
-                        {position.y.toFixed(2)}
-                        <span className="text-sm text-slate-400 ml-1">m</span>
-                    </div>
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    <span style={{
+                        color: '#555555',
+                        fontSize: '10px',
+                        fontFamily: "'Courier New', Consolas, monospace",
+                        letterSpacing: '0.05em'
+                    }}>
+                        ROOM
+                    </span>
+                    <span style={{
+                        color: '#00FF00',
+                        fontSize: '14px',
+                        fontFamily: "'Courier New', Consolas, monospace"
+                    }}>
+                        {room}
+                    </span>
                 </div>
 
-                {/* Heartbeat */}
-                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 transition-all hover:border-rose-500/50">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Activity className="w-4 h-4 text-rose-400" />
-                        <span className="data-label">Heart Rate</span>
-                    </div>
-                    <div className="data-value text-rose-400">
-                        {heartbeat}
-                        <span className="text-sm text-slate-400 ml-1">bpm</span>
-                    </div>
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    <span style={{
+                        color: '#555555',
+                        fontSize: '10px',
+                        fontFamily: "'Courier New', Consolas, monospace",
+                        letterSpacing: '0.05em'
+                    }}>
+                        TIMESTAMP
+                    </span>
+                    <span style={{
+                        color: '#FFB000',
+                        fontSize: '14px',
+                        fontFamily: "'Courier New', Consolas, monospace"
+                    }}>
+                        {formatTime(timestamp)}
+                    </span>
                 </div>
 
-                {/* Temperature */}
-                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 transition-all hover:border-amber-500/50">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Thermometer className="w-4 h-4 text-amber-400" />
-                        <span className="data-label">Body Temp</span>
-                    </div>
-                    <div className="data-value text-amber-400">
-                        {temperature}
-                        <span className="text-sm text-slate-400 ml-1">°C</span>
-                    </div>
-                </div>
-
-                {/* Humidity */}
-                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 transition-all hover:border-cyan-500/50">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Droplets className="w-4 h-4 text-cyan-400" />
-                        <span className="data-label">Humidity</span>
-                    </div>
-                    <div className="data-value text-cyan-400">
-                        {humidity}
-                        <span className="text-sm text-slate-400 ml-1">%</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Timestamp */}
-            <div className="mt-4 pt-4 border-t border-slate-700/50 flex items-center justify-between text-xs text-slate-400">
-                <div className="flex items-center gap-2">
-                    <Clock className="w-3 h-3" />
-                    <span>Last updated: {currentTime}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    <span>Real-time (1s interval)</span>
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                }}>
+                    <div style={{
+                        width: '8px',
+                        height: '8px',
+                        backgroundColor: connected ? '#00FF00' : '#FF3333',
+                        borderRadius: '0'
+                    }} />
+                    <span style={{
+                        color: connected ? '#00FF00' : '#FF3333',
+                        fontSize: '12px',
+                        fontFamily: "'Courier New', Consolas, monospace",
+                        letterSpacing: '0.05em'
+                    }}>
+                        {connected ? 'CONNECTED' : 'DISCONNECTED'}
+                    </span>
                 </div>
             </div>
         </div>
